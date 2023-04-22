@@ -2,7 +2,7 @@
 
 import re
 import random
-import calculation as c
+import commons.operations.calculation as c
 
 # Deliberately capture '.'s because it allows us to handle the error or ignore it more easily
 DICE_REGEXP = r"([\d\.]+)d([\d\.]+)" 

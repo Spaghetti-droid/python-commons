@@ -1,7 +1,7 @@
 # Parsing and calculating an expression
 
 import re
-import operations as ops
+import commons.operations.operations as ops
 import commons.utility as utils
 
 # Matches a (positive or negative) number, followed by an operator
