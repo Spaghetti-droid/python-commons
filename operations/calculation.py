@@ -1,8 +1,11 @@
+# Parsing and calculating an expression
+
 import re
 import operations as ops
-import utility
+import commons.utility as utils
 
-SPLIT_REGEXP = r"(\d+(?:\.\d+)?)"
+# Mathes a (positive or negative) number, followed by an operator
+PARSE_REGEXP = r"\s*(\-?\d+(?:\.\d+)?)\s*(\*\*|[+\-\/*])?"
 
 def calculate(expr:str) -> float:
     """Takes a mathematical expression and calculates it. Recognises **, *, /, +, and - operations as well as parentheses
@@ -28,35 +31,39 @@ def calculate(expr:str) -> float:
         
     # Split string into tokens and numbers. Convert the former to Operations and the latter to floats
     
-    # Reverse the list so that we can go through the reversed list backwards.
-    # We want to deal with operations from left to right in expr, but while avoiding changing the next indices 
-    splitExpr = re.split(SPLIT_REGEXP, expr)
-    # Remove empty strings -_-
-    splitExpr = list(filter(None, splitExpr))
     priorityToOp = {}
     previousOp = None
-    previousNum = None
-    for i in range(len(splitExpr)):
-        t = toOperationOrFloat(splitExpr[i])
-        if i % 2:           # t is op - we are assuming here that there is a number - op - number - ... alternation
-            previousOp = t
-            t.setLeftNumber(previousNum)
-            utility.addToDicList(priorityToOp, t.priority, t)
-        else:               # t is a number
-            previousNum = t
-            if previousOp:
-                previousOp.setRightNumber(t)
-            
+    noOpInPreviousMatch = False
+    for numGroup, opGroup in re.findall(PARSE_REGEXP, expr):
+        if noOpInPreviousMatch:
+            raise ValueError('Malformed expression: ' + expr)
+        
+        num = ops.Number(numGroup)        
+        if previousOp:
+            previousOp.setRightNumber(num)
+        
+        if opGroup:
+            op = toOperationOrFloat(opGroup)
+            previousOp = op
+            op.setLeftNumber(num)
+            utils.addToDicList(priorityToOp, op.priority, op)
+        else:
+            # This should always happen at the end of the expression
+            noOpInPreviousMatch = True
+    
+    if not noOpInPreviousMatch:
+        raise ValueError('Malformed expression: ' + expr)            
     
     # Execute the operations
     
+    previousNum = num
     for priority in range(ops.HIGHEST_PRIORITY,ops.LOWEST_PRIORITY+1):
         if priority in priorityToOp:
             opList = priorityToOp[priority]
             for o in opList:            
                 previousNum = o.apply()
     
-    # remaining previousNum is the last item left and also the result
+    # The final previousNum is the last item left and also the result
     
     return previousNum.value               
     
@@ -110,8 +117,6 @@ def toOperationOrFloat(token:str) -> any:
     """
     token = token.strip()
     match token:
-        #case 'd':
-        #    return Roll()
         case '**':
             return ops.Power()
         case '*':
