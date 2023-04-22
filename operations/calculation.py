@@ -4,11 +4,12 @@ import re
 import operations as ops
 import commons.utility as utils
 
-# Mathes a (positive or negative) number, followed by an operator
+# Matches a (positive or negative) number, followed by an operator
 PARSE_REGEXP = r"\s*(\-?\d+(?:\.\d+)?)\s*(\*\*|[+\-\/*])?"
 
 def calculate(expr:str) -> float:
-    """Takes a mathematical expression and calculates it. Recognises **, *, /, +, and - operations as well as parentheses
+    """Takes a mathematical expression and calculates it. Recognises **, *, /, +, and - operations as well as parentheses.
+    Currently ignores all characters it doesn't recognise
 
     Args:
         expr (str): The expression to evaluate
@@ -29,7 +30,7 @@ def calculate(expr:str) -> float:
     for subStart, subEnd in subExpressions:
         expr = expr[:subStart] + str(calculate(expr[subStart+1:subEnd-1])) + expr[subEnd:]
         
-    # Split string into tokens and numbers. Convert the former to Operations and the latter to floats
+    # Split string into numbers and operations. Link them together into a chain of alternating Numbers and Operations
     
     priorityToOp = {}
     previousOp = None
@@ -43,7 +44,7 @@ def calculate(expr:str) -> float:
             previousOp.setRightNumber(num)
         
         if opGroup:
-            op = toOperationOrFloat(opGroup)
+            op = toOperation(opGroup)
             previousOp = op
             op.setLeftNumber(num)
             utils.addToDicList(priorityToOp, op.priority, op)
@@ -105,7 +106,7 @@ def getSubexpressionIndices(expr:str) -> list:
     return subExpressions       
             
 
-def toOperationOrFloat(token:str) -> any:
+def toOperation(token:str) -> ops.Operation:
     """Takes the input token and outputs the corresponding operation, 
     or converts the token to a float if none is found
 
@@ -128,7 +129,4 @@ def toOperationOrFloat(token:str) -> any:
         case '-':
             return ops.Substract()
         case _:
-            try:
-                return ops.Number(token)
-            except Exception:
-                raise ValueError('Operation not recognised: ' + token)
+            raise ValueError('Operation not recognised: ' + token)
