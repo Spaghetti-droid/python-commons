@@ -8,6 +8,8 @@ class Number:
     """
     def __init__(self, value) -> None:
         self.value = float(value)
+        if self.value.is_integer():
+            self.value = int(value)
         self.leftOp = None
         self.rightOp = None
 
