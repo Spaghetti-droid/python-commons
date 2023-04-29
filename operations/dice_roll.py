@@ -18,7 +18,7 @@ def rollAndCalculate(expr:str, maxLabelLength: int = DEFAULT_MAX_LABEL_LENGTH) -
         expr (str): The expression to evaluate
 
     Returns:
-        tuple(str, float): (The expression with dice replaced by their rolls, the result of the evaluation)
+        tuple(str, float | int): (The expression with dice replaced by their rolls, the result of the evaluation)
     """
     expr = expandLabelPrefix(expr, maxLabelLength)
     expr = rollDice(expr)
